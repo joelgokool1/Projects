@@ -1,0 +1,43 @@
+library(dplyr)
+library(tidyr)
+
+#Load data 
+
+refine <- read.csv("refine_new.csv")
+
+setwd("C:/Users/cassandra/Desktop")
+
+# Change brand names to a standard name 
+
+refine$company[grepl("p", refine$company, ignore.case = TRUE)] <- "phillips"
+refine$company[grepl("k", refine$company, ignore.case = TRUE)] <- "akzo"
+refine$company[grepl("t", refine$company, ignore.case = TRUE)] <- "van houten"
+refine$company[grepl("r", refine$company, ignore.case = TRUE)] <- "unilever
+
+#Separate product code and product number 
+
+refine.1 <- separate(refine,Product.code...number, into = c("Product.code","Product.number"), sep = "-")
+
+#Add Product categories 
+
+refine.2 <- refine.1 %>% mutate(product.categories = ifelse(Product.code == "p","Smartphone",ifelse(Product.code == "v","TV", ifelse(Product.code =="x", "Laptop", "Tablet"))))
+
+# Add full address for geocoding 
+
+refine.2$full_address <- paste(refine.2$address, refine.2$city, refine.2$country, sep = ", ")
+
+# Create dummy variables for company and product category
+
+refine.2$company_phillips <- ifelse(refine.2$company == "phillips", 1, 0)
+refine.2$company_akzo <- ifelse(refine.2$company == "akzo", 1, 0)
+refine.2$company_van_houten <- ifelse(refine.2$company == "van houten", 1, 0)
+refine.2$company_unilever <- ifelse(refine.2$company == "unilever", 1, 0)
+
+refine.2$product_smartphone <- ifelse(refine.2$product.categories == "Smartphone", 1, 0)
+refine.2$product_tv <- ifelse(refine.2$product.categories == "TV", 1, 0)
+refine.2$product_laptop <- ifelse(refine.2$product.categories == "Laptop", 1, 0)
+refine.2$product_tablet <- ifelse(refine.2$product.categories == "Tablet", 1, 0)
+
+#Output to csv file
+
+write.csv(refine.2, file = "refine.2_clean.csv")
